@@ -22,9 +22,7 @@ templates = Jinja2Templates(directory=str(_BASE_DIR / "templates"))
 app = FastAPI(
     title="zresp",
     version=__version__,
-    description=(
-        "指示どおりのHTTPレスポンスを返す、従順で柔軟なWebサーバ"
-    ),
+    description=("指示どおりのHTTPレスポンスを返す、従順で柔軟なWebサーバ"),
 )
 
 app.mount("/static", StaticFiles(directory=str(_BASE_DIR / "static")), name="static")
@@ -34,28 +32,60 @@ app.include_router(response.router)
 app.include_router(content.router)
 
 
-# ランディングページに表示する検証ツール一覧
-_TOOLS = [
-    ("リクエスト・インスペクタ (HTML)", "/inspect", "Cloudflare 付与ヘッダを分類して表示"),
-    ("リクエスト・インスペクタ (JSON)", "/api/echo", "全リクエスト情報を JSON で返す"),
-    ("キャッシュ確認プローブ", "/cache/timestamp", "リロードで値が固定ならキャッシュ提供"),
+# ランディングページに表示する検証ツール一覧 (カテゴリごとにグループ化)
+_TOOL_GROUPS = [
     (
-        "キャッシュ指示の制御",
-        "/cache/control?public=true&max_age=120",
-        "任意の Cache-Control を設定",
+        "リクエスト・インスペクタ",
+        "受信したリクエストと Cloudflare 付与ヘッダを可視化",
+        [
+            ("/inspect", "HTML インスペクタ", "CF 付与ヘッダを分類して表示"),
+            ("/api/echo", "JSON で全情報", "全リクエスト情報を JSON で返す"),
+            ("/api/echo.xml", "多形式 Echo", "json / txt / xml / html を選択"),
+        ],
     ),
-    ("ETag / 条件付きリクエスト", "/cache/etag", "If-None-Match で 304 を確認"),
-    ("任意サイズ本文 / Range", "/cache/bytes/1mb", "Range で 206 Partial Content"),
-    ("Vary によるキャッシュキー", "/cache/vary?by=Accept-Encoding", "ヘッダ値ごとに別キャッシュ"),
-    ("任意ステータスコード", "/response/status/503", "エラー応答 / ステータス別の挙動"),
-    ("リダイレクト (Location)", "/response/status/301?location=/api/echo", "3xx + Location ヘッダ"),
-    ("リダイレクトチェーン", "/response/redirect/3", "3 回リダイレクトして終点で 200"),
-    ("レスポンス遅延", "/response/delay/2", "2 秒待ってから応答(タイムアウト検証)"),
-    ("Cookie 設定", "/response/cookie?name=sid&value=abc&samesite=Lax", "属性付き Cookie"),
-    ("任意レスポンスヘッダ", "/response/headers?X-Foo=bar", "クエリをヘッダとして付与"),
-    ("動的画像生成", "/content/image/640x480.png", "指定サイズの画像を生成"),
-    ("コンテンツ配信", "/content/sample.pdf", "png/jpg/svg/pdf/html/css/js/json など"),
-    ("多形式 Echo", "/api/echo.xml", "json / txt / xml / html"),
+    (
+        "CDN / キャッシュ",
+        "キャッシュ・条件付きリクエスト・Range の挙動を検証",
+        [
+            ("/cache/timestamp", "キャッシュ確認プローブ", "リロードで値が固定ならキャッシュ提供"),
+            (
+                "/cache/control?public=true&max_age=120",
+                "キャッシュ指示の制御",
+                "任意の Cache-Control を設定",
+            ),
+            ("/cache/etag", "ETag / 条件付き", "If-None-Match で 304 を確認"),
+            ("/cache/bytes/1mb", "任意サイズ本文 / Range", "Range で 206 Partial Content"),
+            ("/cache/vary?by=Accept-Encoding", "Vary キャッシュキー", "ヘッダ値ごとに別キャッシュ"),
+        ],
+    ),
+    (
+        "レスポンス整形",
+        "ステータス・リダイレクト・遅延・Cookie・ヘッダを自在に",
+        [
+            ("/response/status/503", "任意ステータスコード", "エラー応答 / ステータス別の挙動"),
+            (
+                "/response/status/301?location=/api/echo",
+                "リダイレクト (Location)",
+                "3xx + Location ヘッダ",
+            ),
+            ("/response/redirect/3", "リダイレクトチェーン", "3 回リダイレクトして終点で 200"),
+            ("/response/delay/2", "レスポンス遅延", "2 秒待ってから応答 (タイムアウト検証)"),
+            ("/response/cookie?name=sid&value=abc&samesite=Lax", "Cookie 設定", "属性付き Cookie"),
+            ("/response/headers?X-Foo=bar", "任意レスポンスヘッダ", "クエリをヘッダとして付与"),
+        ],
+    ),
+    (
+        "コンテンツ配信",
+        "各種コンテンツタイプの配信と動的画像生成",
+        [
+            ("/content/image/640x480.png", "動的画像生成", "指定サイズの画像を生成"),
+            (
+                "/content/sample.pdf",
+                "コンテンツ配信",
+                "png / jpg / svg / pdf / html / css / js / json など",
+            ),
+        ],
+    ),
 ]
 
 
@@ -69,7 +99,7 @@ async def index(request: Request) -> HTMLResponse:
         context={
             "app_name": settings.app_name,
             "version": __version__,
-            "tools": _TOOLS,
+            "tool_groups": _TOOL_GROUPS,
             "info": info,
         },
     )

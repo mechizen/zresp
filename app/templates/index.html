@@ -2,16 +2,15 @@
 {% block title %}Home{% endblock %}
 {% block content %}
 <section class="hero">
-  <h1>Cloudflare 検証用オリジンサーバ</h1>
+  <h1>Pythonベースの柔軟なモックサーバ</h1>
   <p>
-    このサーバは Cloudflare の背後に立つ<strong>オリジン</strong>として動きます。
-    受信したリクエストを可視化し、CDN / WAF / Bot Management / Turnstile / API Shield の
-    挙動を検証するためのエンドポイントを提供します。
+    このサーバは指示どおりのHTTPレスポンスを返す、従順で柔軟なWebサーバです。
+    受信したリクエストを可視化し、リバースプロキシの挙動を検証するためのエンドポイントを提供します。
   </p>
 </section>
 
 <section class="summary">
-  <h2>現在のリクエスト</h2>
+  <h2>受信リクエスト</h2>
   <div class="cards">
     <div class="card">
       <span class="card-label">実クライアント IP (推定)</span>
@@ -37,15 +36,22 @@
 </section>
 
 <section class="tools">
-  <h2>検証ツール</h2>
-  <ul class="tool-list">
-    {% for name, href, desc in tools %}
-    <li>
-      <a class="tool-name" href="{{ href }}">{{ name }}</a>
-      <code class="tool-href">{{ href }}</code>
-      <span class="tool-desc">{{ desc }}</span>
-    </li>
-    {% endfor %}
-  </ul>
+  <h2>検証エンドポイント</h2>
+  {% for group_name, group_desc, items in tool_groups %}
+  <div class="tool-group">
+    <div class="tool-group-head">
+      <h3>{{ group_name }}</h3>
+      <span class="tool-group-desc">{{ group_desc }}</span>
+    </div>
+    <ol class="tool-list">
+      {% for href, name, desc in items %}
+      <li class="tool-item">
+        <a class="tool-path" href="{{ href }}">{{ href }}</a>
+        <span class="tool-info"><strong>{{ name }}</strong> — {{ desc }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %}
 </section>
 {% endblock %}

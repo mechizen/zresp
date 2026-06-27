@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Cloudflare 検証用オリジンサーバ</h1>
+  <p>
+    このサーバは Cloudflare の背後に立つ<strong>オリジン</strong>として動きます。
+    受信したリクエストを可視化し、CDN / WAF / Bot Management / Turnstile / API Shield の
+    挙動を検証するためのエンドポイントを提供します。
+  </p>
+</section>
+
+<section class="summary">
+  <h2>現在のリクエスト</h2>
+  <div class="cards">
+    <div class="card">
+      <span class="card-label">実クライアント IP (推定)</span>
+      <span class="card-value">{{ info.client_ip.best_guess or "—" }}</span>
+    </div>
+    <div class="card">
+      <span class="card-label">CF-Connecting-IP</span>
+      <span class="card-value">{{ info.client_ip.cf_connecting_ip or "未付与" }}</span>
+    </div>
+    <div class="card">
+      <span class="card-label">CF-Ray</span>
+      <span class="card-value">{{ info.cf_ray or "未付与" }}</span>
+    </div>
+    <div class="card">
+      <span class="card-label">Scheme</span>
+      <span class="card-value">{{ info.scheme }}</span>
+    </div>
+  </div>
+  {% if not info.cf_ray %}
+  <p class="hint">CF-Ray が「未付与」の場合、Cloudflare を経由せず直接アクセスしています。
+    Cloudflare 経由の検証には Tunnel または プロキシ有効 (オレンジクラウド) のドメインを使ってください。</p>
+  {% endif %}
+</section>
+
+<section class="tools">
+  <h2>検証ツール</h2>
+  <ul class="tool-list">
+    {% for name, href, desc in tools %}
+    <li>
+      <a class="tool-name" href="{{ href }}">{{ name }}</a>
+      <code class="tool-href">{{ href }}</code>
+      <span class="tool-desc">{{ desc }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

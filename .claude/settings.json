@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof:*)",
+      "Bash(uv run:*)",
+      "Bash(curl -s http://localhost:5173/*)",
+      "Bash(curl -s -X POST http://localhost:5173/*)",
+      "WebFetch(domain:*)"
+    ]
+  }
+}

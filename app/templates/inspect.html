@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Inspector{% endblock %}
+{% block content %}
+<section class="inspector-head">
+  <h1>Request Inspector</h1>
+  <div class="reqline">
+    <span class="method">{{ info.method }}</span>
+    <span class="path">{{ info.path }}{% if info.query_string %}?{{ info.query_string }}{% endif %}</span>
+    <span class="proto">HTTP/{{ info.http_version }} · {{ info.scheme }}</span>
+  </div>
+  <div class="ts">{{ info.timestamp }}</div>
+</section>
+
+<section class="card-section">
+  <h2>クライアント IP の解決</h2>
+  <p class="desc">TCP ピアは cloudflared / プロキシです。実クライアント IP は Cloudflare 付与ヘッダから読み取ります。</p>
+  <table class="kv">
+    <tr><td class="hk">推定実クライアント IP</td><td class="hv strong">{{ info.client_ip.best_guess or "—" }}</td></tr>
+    <tr><td class="hk">socket peer (TCP)</td><td class="hv">{{ info.client_ip.socket_peer or "—" }}</td></tr>
+    <tr><td class="hk">CF-Connecting-IP</td><td class="hv">{{ info.client_ip.cf_connecting_ip or "—" }}</td></tr>
+    <tr><td class="hk">True-Client-IP</td><td class="hv">{{ info.client_ip.true_client_ip or "—" }}</td></tr>
+    <tr><td class="hk">X-Real-IP</td><td class="hv">{{ info.client_ip.x_real_ip or "—" }}</td></tr>
+    <tr><td class="hk">X-Forwarded-For</td><td class="hv">{{ info.client_ip.x_forwarded_for or "—" }}</td></tr>
+  </table>
+</section>
+
+{% for cat in info.categories %}
+<section class="card-section cat {% if cat.id != 'standard' %}cat-cf{% endif %}">
+  <h2>{{ cat.title }} <span class="count">{{ cat.headers | length }}</span></h2>
+  <p class="desc">{{ cat.description }}</p>
+  <table class="kv">
+    {% for k, v in cat.headers.items() %}
+    <tr><td class="hk">{{ k }}</td><td class="hv">{{ v }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endfor %}
+
+{% if info.cookies %}
+<section class="card-section">
+  <h2>Cookies <span class="count">{{ info.cookies | length }}</span></h2>
+  <table class="kv">
+    {% for k, v in info.cookies.items() %}
+    <tr><td class="hk">{{ k }}</td><td class="hv">{{ v }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
+{% if info.body.size %}
+<section class="card-section">
+  <h2>Body <span class="count">{{ info.body.size }} bytes</span></h2>
+  <p class="desc">Content-Type: {{ info.body.content_type or "—" }}{% if info.body.truncated %} · プレビュー上限を超えたため省略{% endif %}</p>
+  {% if info.body.json_value is not none %}
+  <pre>{{ info.body.json_value | tojson(indent=2) }}</pre>
+  {% elif info.body.form %}
+  <table class="kv">
+    {% for k, v in info.body.form.items() %}
+    <tr><td class="hk">{{ k }}</td><td class="hv">{{ v }}</td></tr>
+    {% endfor %}
+  </table>
+  {% elif info.body.text %}
+  <pre>{{ info.body.text }}</pre>
+  {% endif %}
+</section>
+{% endif %}
+
+<p class="json-link">JSON 版: <a href="/api/echo{% if info.query_string %}?{{ info.query_string }}{% endif %}">/api/echo</a></p>
+{% endblock %}

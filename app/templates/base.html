@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ app_name }}{% endblock %} · zresp</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">⚡ zresp</a>
+    <nav>
+      <a href="/inspect">Inspector</a>
+      <a href="/cache/timestamp">Cache</a>
+      <a href="/docs">API Docs</a>
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    Cloudflare 検証用オリジンサーバ{% if version %} · v{{ version }}{% endif %}
+  </footer>
+</body>
+</html>

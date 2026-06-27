@@ -10,15 +10,14 @@ ENV UV_COMPILE_BYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # 依存だけ先に解決してレイヤキャッシュを効かせる
+# (BuildKit 不要にするため uv キャッシュの --mount は使わない。レイヤキャッシュは効く)
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-install-project --no-dev
+RUN uv sync --frozen --no-install-project --no-dev
 
 # プロジェクト本体をインストール
 COPY README.md ./
 COPY app ./app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev
 
 ENV PATH="/app/.venv/bin:$PATH"
 

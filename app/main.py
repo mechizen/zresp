@@ -7,6 +7,7 @@ CDN/キャッシュ挙動の検証エンドポイントを提供する。
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -23,6 +24,20 @@ app = FastAPI(
     title="zresp",
     version=__version__,
     description=("指示どおりのHTTPレスポンスを返す、従順で柔軟なWebサーバ"),
+)
+
+# CORS: ブラウザクライアント (req-sender 等) から fetch で叩けるようにする。
+# これにより Cloudflare の Transform ルールで CORS を付与する必要がなくなる
+# (両方で付けると Access-Control-Allow-Origin が重複してブラウザがエラーになるため、
+#  zresp 側で対応する場合は CF 側の CORS ルールを外すこと)。
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_allow_origins,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 app.mount("/static", StaticFiles(directory=str(_BASE_DIR / "static")), name="static")

@@ -130,6 +130,23 @@ curl -s http://localhost:8000/content/sample.pdf -o sample.pdf
 
 ---
 
+## CORS(ブラウザクライアントからの検証)
+
+[req-sender](https://github.com/mechizen/req-sender) のような**ブラウザから `fetch` で叩く検証クライアント**でも
+レスポンスを読めるよう、zresp は **CORS ヘッダをオリジン自身で返します**(既定で全オリジン許可)。
+
+- プリフライト(`OPTIONS`)に応答し、`Access-Control-Allow-Origin` / `-Methods` / `-Headers` を付与
+- `Access-Control-Expose-Headers: *` で、JS から**全レスポンスヘッダを読める**(ヘッダ検証向け)
+
+> **重要**: Cloudflare の Transform ルールで CORS を付与している場合は、**そのルールを外してください**。
+> 両方で付けると `Access-Control-Allow-Origin` が重複し、ブラウザが CORS エラーになります。
+
+Cookie 等の credentialed リクエストを使う場合は、`"*"` と credentials は併用できないため、
+`ZRESP_CORS_ALLOW_ORIGINS` を具体的なオリジンに絞り、`ZRESP_CORS_ALLOW_CREDENTIALS=true` にします
+(`.env.example` 参照)。
+
+---
+
 ## Cloudflare の前段に配置する(Tunnel)
 
 グローバル IP やポート開放なしに、コンテナを Cloudflare のプロキシ配下に出せます。
